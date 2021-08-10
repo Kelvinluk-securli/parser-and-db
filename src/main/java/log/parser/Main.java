@@ -1,5 +1,7 @@
 package log.parser;
 
+import picocli.CommandLine;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -9,22 +11,48 @@ import java.text.SimpleDateFormat;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws MalformedURLException {
-        // constants declaration
-        final String filePath = "pfsense_syslog.log";
-        final URL host = new URL("http://localhost:8080");
-        final String network = "unity";
-        final String dbName = "unitydb";
-        final int batchSize = 5000;
+
+    public static class CommandOptions {
+        @CommandLine.Option(names = {"-p", "--path"}, description = "Path for the log file to parse")
+        String filePath = "pfsense_syslog.log";
+        @CommandLine.Option(names = {"-H", "--host"}, description = "URL of the FlureeDB database")
+        String host = "http://localhost:8080";
+        @CommandLine.Option(names = {"-n", "--network"}, description = "Network of the FlureeDB database")
+        String network = "unity";
+        @CommandLine.Option(names = {"-d", "--name"}, description = "Name of the FlureeDB database")
+        String dbName = "unitydb";
+        @CommandLine.Option(names = {"-s", "--size"}, description = "Set the batch size for each batch transaction")
+        int batchSize = 5000;
+        @CommandLine.Option(names = {"-y", "--year"}, description = "The initial year inferred by the program")
+        int initYear = 2020;
+
+        @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help message")
+        boolean usageHelpRequested;
+    }
+
+    public static void main(String[] args) {
+        // parse command line arguments
+        CommandOptions commandOptions = new CommandOptions();
+        CommandLine commandLine = new CommandLine(commandOptions);
+        commandLine.parseArgs(args);
+
+        // display help message
+        if (commandLine.isUsageHelpRequested()){
+            commandLine.usage(System.out);
+            return;
+        }
 
         try {
-            // grab the load file in /src/resources
-            URL val = Main.class.getClassLoader().getResource(filePath);
-            assert val != null;
+            final String filePath = commandOptions.filePath;
+            final URL host = new URL(commandOptions.host);
+            final String network = commandOptions.network;
+            final String dbName = commandOptions.dbName;
+            final int batchSize = commandOptions.batchSize;
+            final int initYear = commandOptions.initYear;
 
-            File file = new File(val.toURI());
+            File file = new File(filePath);
             Scanner sc = new Scanner(file);
-            Parser pr = new Parser(2020);
+            Parser pr = new Parser(initYear);
             FlureeDB flureeDB = new FlureeDB(host, network, dbName, batchSize);
 
             while (sc.hasNextLine()){
@@ -73,6 +101,9 @@ public class Main {
             flureeDB.close();
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
+        } catch (MalformedURLException e) {
+            System.out.println("Malformed host URL");
+            e.printStackTrace();
         } catch (IOException | URISyntaxException | ParseException e) {
             e.printStackTrace();
         }
