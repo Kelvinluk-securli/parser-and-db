@@ -91,9 +91,9 @@ public class FlureeDB {
 
         // set timeout = 60 seconds
         RequestConfig.Builder requestConfig = RequestConfig.custom();
-        requestConfig.setConnectTimeout(10 * 1000);
-        requestConfig.setConnectionRequestTimeout(10 * 1000);
-        requestConfig.setSocketTimeout(10 * 1000);
+        requestConfig.setConnectTimeout(60 * 1000);
+        requestConfig.setConnectionRequestTimeout(60 * 1000);
+        requestConfig.setSocketTimeout(60 * 1000);
 
         hp.setConfig(requestConfig.build());
 

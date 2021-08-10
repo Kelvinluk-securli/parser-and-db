@@ -15,7 +15,7 @@ public class Main {
         final URL host = new URL("http://localhost:8080");
         final String network = "unity";
         final String dbName = "unitydb";
-        final int batchSize = 100;
+        final int batchSize = 5000;
 
         try {
             // grab the load file in /src/resources
