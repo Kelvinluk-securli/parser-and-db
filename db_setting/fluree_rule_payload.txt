@@ -1,0 +1,56 @@
+[
+ {
+  "_id": "rules",
+  "ruleNumber": 1000000101,
+  "description": "Block IPv4 link-local",
+  "ruleName": "IPv4 link-local"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1000000103,
+  "description": "Default deny rule IPv4",
+  "ruleName": "Default Deny Rule"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 11000,
+  "description": "block bogon IPv6 networks from WAN",
+  "ruleName": "Bogon IPv6 from WAN"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 12000,
+  "description": "Block ULA networks from WAN block",
+  "ruleName": "ULA from WAN"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1770009611,
+  "description": "pfB_Securli_IPBL_v4 auto rule",
+  "ruleName": "Securli-IPDF-0"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1000000104,
+  "description": "pfB_Securli_IPBL_v4 auto rule",
+  "ruleName": "Securli-IPDF-1"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1000000114,
+  "description": "pfB_Securli_IPBL_v4 auto rule",
+  "ruleName": "Securli-IPDF-2"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1000000115,
+  "description": "pfB_Securli_IPBL_v4 auto rule",
+  "ruleName": "Securli-IPDF-3"
+ },
+ {
+  "_id": "rules",
+  "ruleNumber": 1770009406,
+  "description": "pfB_Securli_IPBL_v4 auto rule",
+  "ruleName": "Securli-IPDF-4"
+ }
+]
