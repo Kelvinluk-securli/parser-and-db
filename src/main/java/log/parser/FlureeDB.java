@@ -1,5 +1,6 @@
 package log.parser;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -13,23 +14,37 @@ import java.net.*;
 import java.util.ArrayList;
 
 public class FlureeDB {
-    static int nextBlockNum = 1;
+    static int nextBlockNum = 0;
 
     private final CloseableHttpClient client = HttpClients.createDefault();
     private final int BATCH_SIZE;
-    private PrintWriter printWriter;
+    private final PrintWriter printWriter;
 
     private final URL targetAdress;
     private final String network;
     private final String dbName;
+    private final int start;
+    private final int end;
 
     private final ArrayList<String> batch = new ArrayList<>();
 
-    public FlureeDB(URL host, String network, String dbName, int batchSize) throws IOException {
+    public static class EndOfTransactException extends Exception{
+        public EndOfTransactException() {
+            super();
+        }
+
+        public EndOfTransactException(String message) {
+            super(message);
+        }
+    }
+
+    public FlureeDB(URL host, String network, String dbName, int batchSize, int start, int end) throws IOException {
         targetAdress = host;
         this.network = network;
         this.dbName = dbName;
         BATCH_SIZE = batchSize;
+        this.start = start;
+        this.end = end;
         try {
             FileWriter failedFile = new FileWriter("failed.txt", true);
             printWriter = new PrintWriter(failedFile, true);
@@ -47,15 +62,18 @@ public class FlureeDB {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public void transact(String json) throws IOException, URISyntaxException{
+    public void transact(String json) throws IOException, URISyntaxException, EndOfTransactException {
         batch.add(json);
         if (shouldFlush()) {
-            int status = flush();
+            flush();
         }
     }
 
     public boolean close() throws IOException, URISyntaxException {
-        flush();
+        try {
+            flush();
+        } catch (EndOfTransactException ignored){}
+
         try {
             client.close();
             return true;
@@ -86,7 +104,15 @@ public class FlureeDB {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public int flush() throws IOException, URISyntaxException{
+    private int flush() throws IOException, URISyntaxException, EndOfTransactException {
+        if (nextBlockNum < start) {
+            System.out.println("Block Number " + nextBlockNum++ + "skipped\n");
+            batch.clear();
+            return 0;
+        } else if (end >=0 && nextBlockNum >= end) {
+            throw new EndOfTransactException();
+        }
+
         URI uri = new URL(targetAdress, "fdb/" + network + "/" + dbName + "/transact").toURI();
         HttpPost hp = new HttpPost(uri);
 
@@ -125,11 +151,15 @@ public class FlureeDB {
                 writeFailedPayload(sb.toString(), nextBlockNum);
             }
             return response.getStatusLine().getStatusCode();
-        } catch (ConnectionPoolTimeoutException |SocketTimeoutException e){
+        } catch (ConnectionPoolTimeoutException |SocketTimeoutException e) {
             e.printStackTrace();
-            System.out.println("Client disconnect: status code: " + 408 + "\nbatchsize: "+ batch.size());
+            System.out.println("Client disconnect: status code: " + 408 + "\nbatchsize: " + batch.size());
             writeFailedPayload(sb.toString(), nextBlockNum);
             return 408;
+        } catch (ClientProtocolException e) {
+            System.out.println("Cannot connect to the fluree server, abort...");
+            writeFailedPayload(sb.toString(), nextBlockNum);
+            throw e;
         } finally {
             System.out.println("Releasing connection...");
             long endTime = System.currentTimeMillis();
@@ -149,7 +179,7 @@ public class FlureeDB {
 
 
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
+    public static void main(String[] args) throws IOException, URISyntaxException, EndOfTransactException {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost hp = new HttpPost("http://localhost:8080/fdb/health");
 
@@ -170,7 +200,7 @@ public class FlureeDB {
                         new String(response1.getEntity().getContent().readAllBytes()) + "\n"
         );
 
-        FlureeDB flureeDB = new FlureeDB(new URL("http://localhost:8080"), "unity", "unitydb", 100);
+        FlureeDB flureeDB = new FlureeDB(new URL("http://localhost:8080"), "unity", "unitydb", 100, 0, -1);
         flureeDB.transact("[{\"_id\":\"rules\", \"ruleNumber\": 0, \"description\":\"test\", \"ruleName\":\"test\"}]");
     }
 }

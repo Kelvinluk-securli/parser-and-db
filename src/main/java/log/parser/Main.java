@@ -13,18 +13,30 @@ import java.util.Scanner;
 public class Main {
 
     public static class CommandOptions {
-        @CommandLine.Option(names = {"-p", "--path"}, description = "Path for the log file to parse")
+        @CommandLine.Option(names = {"-p", "--path"}, description = "Path for the log file to parse, default is " +
+                "\"pfsense_syslog.log\"")
         String filePath = "pfsense_syslog.log";
-        @CommandLine.Option(names = {"-H", "--host"}, description = "URL of the FlureeDB database")
+        @CommandLine.Option(names = {"-H", "--host"}, description = "URL of the FlureeDB database, default is " +
+                "\"http://localhost:8080\"")
         String host = "http://localhost:8080";
-        @CommandLine.Option(names = {"-n", "--network"}, description = "Network of the FlureeDB database")
+        @CommandLine.Option(names = {"-n", "--network"}, description = "Network of the FlureeDB database, default is " +
+                "\"unity\"")
         String network = "unity";
-        @CommandLine.Option(names = {"-d", "--name"}, description = "Name of the FlureeDB database")
+        @CommandLine.Option(names = {"-d", "--name"}, description = "Name of the FlureeDB database, default is " +
+                "\"unitydb\"")
         String dbName = "unitydb";
-        @CommandLine.Option(names = {"-s", "--size"}, description = "Set the batch size for each batch transaction")
+        @CommandLine.Option(names = {"-s", "--size"}, description = "Set the batch size for each batch transaction, default " +
+                "is 5000")
         int batchSize = 5000;
-        @CommandLine.Option(names = {"-y", "--year"}, description = "The initial year inferred by the program")
+        @CommandLine.Option(names = {"-y", "--year"}, description = "The initial year inferred by the program, default " +
+                "is 2020")
         int initYear = 2020;
+        @CommandLine.Option(names = {"-S", "--start"}, description = "Starting point of transaction (inclusive), note" +
+                " that block number starts from 0")
+        int start = 0;
+        @CommandLine.Option(names = {"-E", "--end"}, description = "Ending point of transaction (exclusive), negative " +
+                "integer means transact till the last block")
+        int end = -1;
 
         @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help message")
         boolean usageHelpRequested;
@@ -49,11 +61,13 @@ public class Main {
             final String dbName = commandOptions.dbName;
             final int batchSize = commandOptions.batchSize;
             final int initYear = commandOptions.initYear;
+            final int start = commandOptions.start;
+            final int end = commandOptions.end;
 
             File file = new File(filePath);
             Scanner sc = new Scanner(file);
             Parser pr = new Parser(initYear);
-            FlureeDB flureeDB = new FlureeDB(host, network, dbName, batchSize);
+            FlureeDB flureeDB = new FlureeDB(host, network, dbName, batchSize, start, end);
 
             while (sc.hasNextLine()){
                 String line = sc.nextLine().trim();
@@ -106,6 +120,8 @@ public class Main {
             e.printStackTrace();
         } catch (IOException | URISyntaxException | ParseException e) {
             e.printStackTrace();
+        } catch (FlureeDB.EndOfTransactException e) {
+            System.out.println("Reached the end specified by --end");
         }
     }
 }
