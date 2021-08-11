@@ -13,28 +13,29 @@ import java.net.*;
 import java.util.ArrayList;
 
 public class FlureeDB {
+    static int nextBlockNum = 1;
+
     private final CloseableHttpClient client = HttpClients.createDefault();
     private final int BATCH_SIZE;
-    private FileWriter failedFile;
     private PrintWriter printWriter;
 
-    private URL targetAdress;
-    private String network;
-    private String dbName;
+    private final URL targetAdress;
+    private final String network;
+    private final String dbName;
 
-    private ArrayList<String> batch = new ArrayList<>();
+    private final ArrayList<String> batch = new ArrayList<>();
 
-    public FlureeDB(URL host, String network, String dbName, int batchSize){
+    public FlureeDB(URL host, String network, String dbName, int batchSize) throws IOException {
         targetAdress = host;
         this.network = network;
         this.dbName = dbName;
         BATCH_SIZE = batchSize;
         try {
-            failedFile = new FileWriter("failed.txt", true);
+            FileWriter failedFile = new FileWriter("failed.txt", true);
             printWriter = new PrintWriter(failedFile, true);
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Failed to open the file");
+            System.out.println("Failed to open the file for writing failed tx block");
+            throw e;
         }
     }
 
@@ -50,7 +51,6 @@ public class FlureeDB {
         batch.add(json);
         if (shouldFlush()) {
             int status = flush();
-//            System.out.println("Status code: " + status);
         }
     }
 
@@ -70,11 +70,12 @@ public class FlureeDB {
         return batch.size()>=BATCH_SIZE;
     }
 
-    private void writeFailedPayload(String payload) {
+    private void writeFailedPayload(String payload, int blockNum) {
         if (printWriter != null) {
-            printWriter.println(payload);
+            String msg = blockNum + ":\n" + payload;
+            printWriter.println(msg);
         } else {
-            System.out.println("failed to write to file");
+            System.out.println("failed to write failed block to file");
         }
     }
 
@@ -114,24 +115,26 @@ public class FlureeDB {
         hp.setHeader("Content-type", "application/json");
 
         System.out.println("Establishing connection...");
+        System.out.println("Block Number: " + nextBlockNum);
         long startTime = System.currentTimeMillis();
         try {
             CloseableHttpResponse response = client.execute(hp);
             System.out.println("status code: "+ response.getStatusLine().getStatusCode() + "\nbatchsize: "+ batch.size());
             if (response.getStatusLine().getStatusCode() != 200){
                 System.out.println("error: " + new String(response.getEntity().getContent().readAllBytes()));
-                writeFailedPayload(sb.toString());
+                writeFailedPayload(sb.toString(), nextBlockNum);
             }
             return response.getStatusLine().getStatusCode();
         } catch (ConnectionPoolTimeoutException |SocketTimeoutException e){
             e.printStackTrace();
             System.out.println("Client disconnect: status code: " + 408 + "\nbatchsize: "+ batch.size());
-            writeFailedPayload(sb.toString());
+            writeFailedPayload(sb.toString(), nextBlockNum);
             return 408;
         } finally {
             System.out.println("Releasing connection...");
             long endTime = System.currentTimeMillis();
             System.out.printf("Time elapsed: %d\n\n", (endTime-startTime));
+            ++nextBlockNum;
             hp.releaseConnection();
             batch.clear();
         }

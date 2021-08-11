@@ -1,0 +1,80 @@
+[
+ {
+  "_id": "_collection",
+  "name": "logs"
+ },
+ {
+  "_id": "_collection",
+  "name": "rules"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/destPort",
+  "type": "int"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/srcPort",
+  "type": "int"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/dest",
+  "doc": "destination IP",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/src",
+  "doc": "source IP",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/protocol",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/direction",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/action",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/interface",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/rule",
+  "type": "ref",
+  "restrictCollection": "rules"
+ },
+ {
+  "_id": "_predicate",
+  "name": "logs/datetime",
+  "doc": "datetime in millisecond unix epoch",
+  "type": "instant"
+ },
+ {
+  "_id": "_predicate",
+  "name": "rules/ruleName",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "rules/description",
+  "type": "string"
+ },
+ {
+  "_id": "_predicate",
+  "name": "rules/ruleNumber",
+  "type": "long",
+  "unique": true
+ }
+]
