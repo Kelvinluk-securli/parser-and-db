@@ -66,21 +66,33 @@ public class Main {
 
                 long epoch = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss").parse(result.timestamp).getTime();
 
-                String transactPayload = """
-                        {
-                            "_id":"logs",
-                            "datetime":%d,
-                            "rule":["rules/ruleNumber", %d],
-                            "interface":"%s",
-                            "action":"%s",
-                            "direction":"%s",
-                            "protocol":"%s",
-                            "src":"%s",
-                            "dest":"%s",
-                            "srcPort":%d,
-                            "destPort":%d
-                        }
-                        """;
+//                String transactPayload = """
+//                        {
+//                            "_id":"logs",
+//                            "datetime":%d,
+//                            "rule":["rules/ruleNumber", %d],
+//                            "interface":"%s",
+//                            "action":"%s",
+//                            "direction":"%s",
+//                            "protocol":"%s",
+//                            "src":"%s",
+//                            "dest":"%s",
+//                            "srcPort":%d,
+//                            "destPort":%d
+//                        }
+//                        """;
+                String transactPayload = "{\n" +
+                        "\t\"_id\":\"logs\",\n" +
+                        "\t\"datetime\":%d,\n" +
+                        "\t\"rule\":[\"rules/ruleNumber\", %d],\n" +
+                        "\t\"interface\":\"%s\",\n" +
+                        "\t\"action\":\"%s\",\n" +
+                        "\t\"direction\":\"%s\",\n" +
+                        "\t\"protocol\":\"%s\",\n" +
+                        "\t\"src\":\"%s\",\n" +
+                        "\t\"dest\":\"%s\",\n" +
+                        "\t\"srcPort\":%d,\n" +
+                        "\t\"destPort\":%d";
                 transactPayload = String.format(
                         transactPayload,
                         epoch,
