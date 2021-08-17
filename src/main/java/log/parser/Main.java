@@ -92,7 +92,8 @@ public class Main {
                         "\t\"src\":\"%s\",\n" +
                         "\t\"dest\":\"%s\",\n" +
                         "\t\"srcPort\":%d,\n" +
-                        "\t\"destPort\":%d";
+                        "\t\"destPort\":%d\n" +
+                        "}";
                 transactPayload = String.format(
                         transactPayload,
                         epoch,
